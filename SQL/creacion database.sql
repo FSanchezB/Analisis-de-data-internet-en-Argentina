@@ -112,6 +112,9 @@ UPDATE localidades l
 JOIN partidos p USING (Partido)
 SET l.Id_Partido=p.Id_Partido;
 
+ALTER TABLE localidades
+DROP Partido;
+
 SELECT * FROM localidades; -- localidades terminada
 
 ALTER TABLE partidos -- relaciones 
@@ -243,3 +246,63 @@ SELECT * FROM evolucion_provincia; -- podemos droppear Provincia y Tec_Predomina
 ALTER TABLE  evolucion_provincia 
 DROP COLUMN Provincia,
 DROP COLUMN Tec_Predominante;
+
+ALTER TABLE evolucion_provincia
+ADD CONSTRAINT fk_id_provincia
+FOREIGN KEY (Id_Provincia) REFERENCES provincias(Id_Provincia);
+
+ALTER TABLE evolucion_provincia
+ADD CONSTRAINT fk_tec
+FOREIGN KEY (Id_Tec_Predominante) REFERENCES tecnologias(Id_Tecnologia);
+
+-- tabla evolucion_nacional
+DROP TABLE IF EXISTS evolucion_nacional;
+CREATE TABLE IF NOT EXISTS evolucion_nacional(
+Id_Evolucion_Nacional INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+Anio YEAR,
+Trimestre INT,
+Penetracion_Poblacion FLOAT,
+Penetracion_Hogares FLOAT,
+Ingresos FLOAT,
+Velocidad_Promedio FLOAT);
+SELECT * FROM evolucion_nacional;
+
+LOAD DATA INFILE "C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\penetracion_total" -- comenzamos la carga del dataset con mas datos en sus columnas
+INTO TABLE evolucion_nacional
+FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(@dummy, Anio, Trimestre, Penetracion_Poblacion, Penetracion_Hogares, @dummy);
+SELECT * FROM evolucion_nacional;
+
+TRUNCATE aux_carga;
+LOAD DATA INFILE "C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\ingresos" -- cargamos la columna ingresos
+INTO TABLE aux_carga
+FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(@dummy,@dummy, @dummy, numero);
+SELECT * FROM aux_carga;
+
+UPDATE evolucion_nacional e
+JOIN aux_carga a  ON e.Id_Evolucion_Nacional=a.Id_Carga
+SET e.Ingresos=a.numero;
+SELECT * FROM evolucion_nacional;
+
+
+TRUNCATE aux_carga;
+LOAD DATA INFILE "C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\velocidad_nacional" -- cargamos la columna Velocidad_Promedio
+INTO TABLE aux_carga
+FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(@dummy,@dummy, @dummy, numero);
+SELECT * FROM aux_carga;
+
+UPDATE evolucion_nacional e
+JOIN aux_carga a  ON e.Id_Evolucion_Nacional=a.Id_Carga
+SET e.Velocidad_Promedio=a.numero;
+SELECT * FROM evolucion_nacional;
+-- carga de la tabla evolucion_nacional terminada
+
+DROP TABLE aux_carga;
