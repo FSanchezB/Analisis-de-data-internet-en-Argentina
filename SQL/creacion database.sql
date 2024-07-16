@@ -306,5 +306,3 @@ SELECT * FROM evolucion_nacional;
 -- carga de la tabla evolucion_nacional terminada
 
 DROP TABLE aux_carga;
-
-
